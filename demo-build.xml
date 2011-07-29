@@ -1,0 +1,224 @@
+
+<project name="DemoDistributionBuilder" default="run" basedir=".">
+	<description>Ant task to create a demo distribution.</description>
+	<property file="distrib.properties" />
+
+<!-- depends="prepare, createPlanFile, downloadCore, downloadAD, downloadBD, downloadBP, downloadMM, downloadHR, downloadSD, copy, pack, publish"-->
+	<target name="run" depends="prepare, createPlanFile, downloadCore, downloadAD, downloadBD, downloadBP, downloadMM, downloadHR, downloadSD, copy, pack, publish" >
+	</target>
+	
+	<target name="publish">			
+			<echo>Uploading to server...</echo>
+			<ftp server="${ftpServer}"              
+			       userid="${ftpUser}"                          
+			       password="${ftpPassword}"                      
+			       passive="yes"                              
+			       remotedir="${ftpPath}"   
+			       verbose="yes"
+			       >
+			    <fileset dir="${targetFolder}">                       
+			      <include name="dnet_ebs-${dnetVersion}.zip"/>		          
+			    </fileset>
+			  </ftp>  
+		</target>
+	
+	
+	<target name="pack">
+		<echo>Building the zip file...</echo>
+		<zip destfile="${targetFolder}/dnet_ebs-${dnetVersion}.zip"
+			       basedir="${targetFolder}"
+			  />
+	</target>
+	
+	
+	<target name="prepare">
+		<echo>Cleaning workspace...</echo>
+		<delete includeEmptyDirs="true">
+			<fileset dir="${targetFolder}" includes="**" />
+		</delete>
+		
+		<echo>Copying virgo into workspace...</echo>
+		<copy todir="${targetFolder}/${virgoName}">
+			<fileset dir="${virgoLocation}/${virgoName}" />
+		</copy> 
+		
+		<echo>Copying configuration files...</echo>
+		<get src="https://raw.github.com/nan21/nan21.dnet.core/master/nan21.dnet.core.config/net.nan21.dnet.product.properties" 
+				dest="${targetFolder}/${virgoName}/config/net.nan21.dnet.product.properties"/>
+		<get src="https://raw.github.com/nan21/nan21.dnet.core/master/nan21.dnet.core.config/net.nan21.dnet.demo.properties" 
+						dest="${targetFolder}/${virgoName}/config/net.nan21.dnet.properties"/>
+	</target>
+	
+	<target name="createPlanFile">
+		<echo>Creating the plan file for core...</echo>
+				<echo file="${targetFolder}/${virgoName}/pickup/net.nan21.dnet.core.-${dnetVersion}.plan">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;plan name="nan21.dnet.core.plan" version="${dnetVersion}" scoped="false" atomic="true"
+        xmlns="http://www.eclipse.org/virgo/schema/plan"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xsi:schemaLocation="
+		        http://www.eclipse.org/virgo/schema/plan 
+		        http://www.eclipse.org/virgo/schema/plan/eclipse-virgo-plan.xsd"&gt;
+
+	&lt;artifact type="bundle" name="nan21.dnet.core.api" version="[${dnetVersion}, ${dnetVersion}]"/&gt;
+	&lt;artifact type="bundle" name="nan21.dnet.core.db" version="[${dnetVersion}, ${dnetVersion}]"/&gt;
+	&lt;artifact type="bundle" name="nan21.dnet.core.domain" version="[${dnetVersion}, ${dnetVersion}]"/&gt;
+	&lt;artifact type="bundle" name="nan21.dnet.core.presenter" version="[${dnetVersion}, ${dnetVersion}]"/&gt;
+	&lt;artifact type="bundle" name="nan21.dnet.core.web" version="[${dnetVersion}, ${dnetVersion}]"&gt;
+		&lt;property name="header:Web-ContextPath" value="/nan21.dnet.core.web" /&gt;
+	&lt;/artifact&gt;
+	&lt;artifact type="bundle" name="nan21.dnet.core.welcome" version="[${dnetVersion}, ${dnetVersion}]"&gt;
+		&lt;property name="header:Web-ContextPath" value="/nan21.dnet.core.welcome" /&gt;
+	&lt;/artifact&gt;
+ 	&lt;artifact type="bundle" name="net.nan21.osgi.extjs" version="[3.3.0, 3.3.0]" /&gt; 
+	&lt;artifact type="bundle" name="nan21.dnet.core.ui.extjs" version="[${dnetVersion}, ${dnetVersion}]"&gt;
+		&lt;property name="header:Web-ContextPath" value="/nan21.dnet.core.ui.extjs" /&gt;
+	&lt;/artifact&gt;
+					
+&lt;/plan&gt;</echo>
+		
+		<echo>Creating the plan file for modules...</echo>
+		
+		<echo file="${targetFolder}/${virgoName}/pickup/net.nan21.dnet.modules.-${dnetVersion}.plan">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;plan name="nan21.dnet.modules.plan" version="${dnetVersion}" scoped="false" atomic="true"
+xmlns="http://www.eclipse.org/virgo/schema/plan"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="
+        http://www.eclipse.org/virgo/schema/plan 
+        http://www.eclipse.org/virgo/schema/plan/eclipse-virgo-plan.xsd"&gt;
+			
+		&lt;artifact type="bundle" name="nan21.dnet.module.ad.domain" version="[${dnetVersion}, ${dnetVersion}]"/&gt;
+		&lt;artifact type="bundle" name="nan21.dnet.module.ad.business" version="[${dnetVersion}, ${dnetVersion}]"/&gt;
+		&lt;artifact type="bundle" name="nan21.dnet.module.ad.presenter" version="[${dnetVersion}, ${dnetVersion}]"/&gt;
+		&lt;artifact type="bundle" name="nan21.dnet.module.ad.ui.extjs" version="[${dnetVersion}, ${dnetVersion}]"&gt;
+			&lt;property name="header:Web-ContextPath" value="/nan21.dnet.module.ad.ui.extjs" /&gt;			
+		&lt;/artifact&gt;
+						
+		&lt;artifact type="bundle" name="nan21.dnet.module.bd.domain" version="[${dnetVersion}, ${dnetVersion}]"/&gt;
+		&lt;artifact type="bundle" name="nan21.dnet.module.bd.business" version="[${dnetVersion}, ${dnetVersion}]"/&gt;
+		&lt;artifact type="bundle" name="nan21.dnet.module.bd.presenter" version="[${dnetVersion}, ${dnetVersion}]"/&gt;
+		&lt;artifact type="bundle" name="nan21.dnet.module.bd.ui.extjs" version="[${dnetVersion}, ${dnetVersion}]"&gt;
+			&lt;property name="header:Web-ContextPath" value="/nan21.dnet.module.bd.ui.extjs" /&gt;			
+		&lt;/artifact&gt;
+						
+						
+		&lt;artifact type="bundle" name="nan21.dnet.module.bp.domain" version="[${dnetVersion}, ${dnetVersion}]"/&gt;
+		&lt;artifact type="bundle" name="nan21.dnet.module.bp.business" version="[${dnetVersion}, ${dnetVersion}]"/&gt;
+		&lt;artifact type="bundle" name="nan21.dnet.module.bp.presenter" version="[${dnetVersion}, ${dnetVersion}]"/&gt;
+		&lt;artifact type="bundle" name="nan21.dnet.module.bp.ui.extjs" version="[${dnetVersion}, ${dnetVersion}]"&gt;
+			&lt;property name="header:Web-ContextPath" value="/nan21.dnet.module.bp.ui.extjs" /&gt;			
+		&lt;/artifact&gt;
+						
+						
+		&lt;artifact type="bundle" name="nan21.dnet.module.mm.domain" version="[${dnetVersion}, ${dnetVersion}]"/&gt;
+		&lt;artifact type="bundle" name="nan21.dnet.module.mm.business" version="[${dnetVersion}, ${dnetVersion}]"/&gt;
+		&lt;artifact type="bundle" name="nan21.dnet.module.mm.presenter" version="[${dnetVersion}, ${dnetVersion}]"/&gt;
+		&lt;artifact type="bundle" name="nan21.dnet.module.mm.ui.extjs" version="[${dnetVersion}, ${dnetVersion}]"&gt;
+			&lt;property name="header:Web-ContextPath" value="/nan21.dnet.module.mm.ui.extjs" /&gt;			
+		&lt;/artifact&gt;
+						
+		&lt;artifact type="bundle" name="nan21.dnet.module.hr.domain" version="[${dnetVersion}, ${dnetVersion}]"/&gt;
+		&lt;artifact type="bundle" name="nan21.dnet.module.hr.business" version="[${dnetVersion}, ${dnetVersion}]"/&gt;
+		&lt;artifact type="bundle" name="nan21.dnet.module.hr.presenter" version="[${dnetVersion}, ${dnetVersion}]"/&gt;
+		&lt;artifact type="bundle" name="nan21.dnet.module.hr.ui.extjs" version="[${dnetVersion}, ${dnetVersion}]"&gt;
+			&lt;property name="header:Web-ContextPath" value="/nan21.dnet.module.hr.ui.extjs" /&gt;			
+		&lt;/artifact&gt;					
+						
+		&lt;artifact type="bundle" name="nan21.dnet.module.sd.domain" version="[${dnetVersion}, ${dnetVersion}]"/&gt;
+		&lt;artifact type="bundle" name="nan21.dnet.module.sd.business" version="[${dnetVersion}, ${dnetVersion}]"/&gt;
+		&lt;artifact type="bundle" name="nan21.dnet.module.sd.presenter" version="[${dnetVersion}, ${dnetVersion}]"/&gt;
+		&lt;artifact type="bundle" name="nan21.dnet.module.sd.ui.extjs" version="[${dnetVersion}, ${dnetVersion}]"&gt;
+			&lt;property name="header:Web-ContextPath" value="/nan21.dnet.module.sd.ui.extjs" /&gt;			
+		&lt;/artifact&gt;					
+			
+&lt;/plan&gt;</echo>		
+	</target>
+	
+	
+	
+	<target name="copy">
+		<echo>Copying application to virgo repository/usr...</echo>
+		<copy todir="${targetFolder}/${virgoName}/repository/usr">
+			<fileset dir="${tempFolder}" />
+		</copy>
+	</target>
+
+	<target name="downloadAD">
+		<echo>Downloading module AD...</echo>
+		<get src="${mavenRepoUrl}/${dnetGroupIdAsPath}/nan21.dnet.module.ad.domain/${dnetVersion}/nan21.dnet.module.ad.domain-${dnetVersion}.jar" dest="${tempFolder}/nan21.dnet.module.ad.domain-${dnetVersion}.jar" />
+		<get src="${mavenRepoUrl}/${dnetGroupIdAsPath}/nan21.dnet.module.ad.business/${dnetVersion}/nan21.dnet.module.ad.business-${dnetVersion}.jar" dest="${tempFolder}/nan21.dnet.module.ad.business-${dnetVersion}.jar" />
+		<get src="${mavenRepoUrl}/${dnetGroupIdAsPath}/nan21.dnet.module.ad.presenter/${dnetVersion}/nan21.dnet.module.ad.presenter-${dnetVersion}.jar" dest="${tempFolder}/nan21.dnet.module.ad.presenter-${dnetVersion}.jar" />
+		<get src="${mavenRepoUrl}/${dnetGroupIdAsPath}/nan21.dnet.module.ad.ui.extjs/${dnetVersion}/nan21.dnet.module.ad.ui.extjs-${dnetVersion}.war" dest="${tempFolder}/nan21.dnet.module.ad.ui.extjs-${dnetVersion}.war" />
+	</target>
+
+	<target name="downloadBD">
+		<echo>Downloading module BD...</echo>
+		<get src="${mavenRepoUrl}/${dnetGroupIdAsPath}/nan21.dnet.module.bd.domain/${dnetVersion}/nan21.dnet.module.bd.domain-${dnetVersion}.jar" dest="${tempFolder}/nan21.dnet.module.bd.domain-${dnetVersion}.jar" />
+		<get src="${mavenRepoUrl}/${dnetGroupIdAsPath}/nan21.dnet.module.bd.business/${dnetVersion}/nan21.dnet.module.bd.business-${dnetVersion}.jar" dest="${tempFolder}/nan21.dnet.module.bd.business-${dnetVersion}.jar" />
+		<get src="${mavenRepoUrl}/${dnetGroupIdAsPath}/nan21.dnet.module.bd.presenter/${dnetVersion}/nan21.dnet.module.bd.presenter-${dnetVersion}.jar" dest="${tempFolder}/nan21.dnet.module.bd.presenter-${dnetVersion}.jar" />
+		<get src="${mavenRepoUrl}/${dnetGroupIdAsPath}/nan21.dnet.module.bd.ui.extjs/${dnetVersion}/nan21.dnet.module.bd.ui.extjs-${dnetVersion}.war" dest="${tempFolder}/nan21.dnet.module.bd.ui.extjs-${dnetVersion}.war" />
+	</target>
+
+	<target name="downloadBP">
+		<echo>Downloading module BP...</echo>
+		<get src="${mavenRepoUrl}/${dnetGroupIdAsPath}/nan21.dnet.module.bp.domain/${dnetVersion}/nan21.dnet.module.bp.domain-${dnetVersion}.jar" dest="${tempFolder}/nan21.dnet.module.bp.domain-${dnetVersion}.jar" />
+		<get src="${mavenRepoUrl}/${dnetGroupIdAsPath}/nan21.dnet.module.bp.business/${dnetVersion}/nan21.dnet.module.bp.business-${dnetVersion}.jar" dest="${tempFolder}/nan21.dnet.module.bp.business-${dnetVersion}.jar" />
+		<get src="${mavenRepoUrl}/${dnetGroupIdAsPath}/nan21.dnet.module.bp.presenter/${dnetVersion}/nan21.dnet.module.bp.presenter-${dnetVersion}.jar" dest="${tempFolder}/nan21.dnet.module.bp.presenter-${dnetVersion}.jar" />
+		<get src="${mavenRepoUrl}/${dnetGroupIdAsPath}/nan21.dnet.module.bp.ui.extjs/${dnetVersion}/nan21.dnet.module.bp.ui.extjs-${dnetVersion}.war" dest="${tempFolder}/nan21.dnet.module.bp.ui.extjs-${dnetVersion}.war" />
+	</target>
+
+
+	<target name="downloadMM">
+		<echo>Downloading module MM...</echo>
+		<get src="${mavenRepoUrl}/${dnetGroupIdAsPath}/nan21.dnet.module.mm.domain/${dnetVersion}/nan21.dnet.module.mm.domain-${dnetVersion}.jar" dest="${tempFolder}/nan21.dnet.module.mm.domain-${dnetVersion}.jar" />
+		<get src="${mavenRepoUrl}/${dnetGroupIdAsPath}/nan21.dnet.module.mm.business/${dnetVersion}/nan21.dnet.module.mm.business-${dnetVersion}.jar" dest="${tempFolder}/nan21.dnet.module.mm.business-${dnetVersion}.jar" />
+		<get src="${mavenRepoUrl}/${dnetGroupIdAsPath}/nan21.dnet.module.mm.presenter/${dnetVersion}/nan21.dnet.module.mm.presenter-${dnetVersion}.jar" dest="${tempFolder}/nan21.dnet.module.mm.presenter-${dnetVersion}.jar" />
+		<get src="${mavenRepoUrl}/${dnetGroupIdAsPath}/nan21.dnet.module.mm.ui.extjs/${dnetVersion}/nan21.dnet.module.mm.ui.extjs-${dnetVersion}.war" dest="${tempFolder}/nan21.dnet.module.mm.ui.extjs-${dnetVersion}.war" />
+	</target>
+
+	<target name="downloadHR">
+		<echo>Downloading module HR...</echo>
+		<get src="${mavenRepoUrl}/${dnetGroupIdAsPath}/nan21.dnet.module.hr.domain/${dnetVersion}/nan21.dnet.module.hr.domain-${dnetVersion}.jar" dest="${tempFolder}/nan21.dnet.module.hr.domain-${dnetVersion}.jar" />
+		<get src="${mavenRepoUrl}/${dnetGroupIdAsPath}/nan21.dnet.module.hr.business/${dnetVersion}/nan21.dnet.module.hr.business-${dnetVersion}.jar" dest="${tempFolder}/nan21.dnet.module.hr.business-${dnetVersion}.jar" />
+		<get src="${mavenRepoUrl}/${dnetGroupIdAsPath}/nan21.dnet.module.hr.presenter/${dnetVersion}/nan21.dnet.module.hr.presenter-${dnetVersion}.jar" dest="${tempFolder}/nan21.dnet.module.hr.presenter-${dnetVersion}.jar" />
+		<get src="${mavenRepoUrl}/${dnetGroupIdAsPath}/nan21.dnet.module.hr.ui.extjs/${dnetVersion}/nan21.dnet.module.hr.ui.extjs-${dnetVersion}.war" dest="${tempFolder}/nan21.dnet.module.hr.ui.extjs-${dnetVersion}.war" />
+	</target>
+
+
+	<target name="downloadSD">
+		<echo>Downloading module SD...</echo>
+		<get src="${mavenRepoUrl}/${dnetGroupIdAsPath}/nan21.dnet.module.sd.domain/${dnetVersion}/nan21.dnet.module.sd.domain-${dnetVersion}.jar" dest="${tempFolder}/nan21.dnet.module.sd.domain-${dnetVersion}.jar" />
+		<get src="${mavenRepoUrl}/${dnetGroupIdAsPath}/nan21.dnet.module.sd.business/${dnetVersion}/nan21.dnet.module.sd.business-${dnetVersion}.jar" dest="${tempFolder}/nan21.dnet.module.sd.business-${dnetVersion}.jar" />
+		<get src="${mavenRepoUrl}/${dnetGroupIdAsPath}/nan21.dnet.module.sd.presenter/${dnetVersion}/nan21.dnet.module.sd.presenter-${dnetVersion}.jar" dest="${tempFolder}/nan21.dnet.module.sd.presenter-${dnetVersion}.jar" />
+		<get src="${mavenRepoUrl}/${dnetGroupIdAsPath}/nan21.dnet.module.sd.ui.extjs/${dnetVersion}/nan21.dnet.module.sd.ui.extjs-${dnetVersion}.war" dest="${tempFolder}/nan21.dnet.module.sd.ui.extjs-${dnetVersion}.war" />
+	</target>
+
+
+
+	<target name="downloadCore">
+		<echo>Downloading DNet-Core artifacts from maven repository...</echo>
+		<echo>Downloading ${core_api}-${dnetVersion}...</echo>
+		<get src="${mavenRepoUrl}/${dnetGroupIdAsPath}/${core_api}/${dnetVersion}/${core_api}-${dnetVersion}.jar" dest="${tempFolder}/${core_api}-${dnetVersion}.jar" />
+
+		<echo>Downloading ${core_db}-${dnetVersion}...</echo>
+		<get src="${mavenRepoUrl}/${dnetGroupIdAsPath}/${core_db}/${dnetVersion}/${core_db}-${dnetVersion}.jar" dest="${tempFolder}/${core_db}-${dnetVersion}.jar" />
+
+		<echo>Downloading ${core_domain}-${dnetVersion}...</echo>
+		<get src="${mavenRepoUrl}/${dnetGroupIdAsPath}/${core_domain}/${dnetVersion}/${core_domain}-${dnetVersion}.jar" dest="${tempFolder}/${core_domain}-${dnetVersion}.jar" />
+
+
+		<echo>Downloading ${core_presenter}-${dnetVersion}...</echo>
+		<get src="${mavenRepoUrl}/${dnetGroupIdAsPath}/${core_presenter}/${dnetVersion}/${core_presenter}-${dnetVersion}.jar" dest="${tempFolder}/${core_presenter}-${dnetVersion}.jar" />
+
+		<echo>Downloading ${core_web}-${dnetVersion}...</echo>
+		<get src="${mavenRepoUrl}/${dnetGroupIdAsPath}/${core_web}/${dnetVersion}/${core_web}-${dnetVersion}.war" dest="${tempFolder}/${core_web}-${dnetVersion}.war" />
+
+		<echo>Downloading ${core_welcome}-${dnetVersion}...</echo>
+		<get src="${mavenRepoUrl}/${dnetGroupIdAsPath}/${core_welcome}/${dnetVersion}/${core_welcome}-${dnetVersion}.war" dest="${tempFolder}/${core_welcome}-${dnetVersion}.war" />
+
+		<echo>Downloading ${core_security}-${dnetVersion}...</echo>
+		<get src="${mavenRepoUrl}/${dnetGroupIdAsPath}/${core_security}/${dnetVersion}/${core_security}-${dnetVersion}.jar" dest="${tempFolder}/${core_security}-${dnetVersion}.jar" />
+
+		<echo>Downloading ${core_uiextjs}-${dnetVersion}...</echo>
+		<get src="${mavenRepoUrl}/${dnetGroupIdAsPath}/${core_uiextjs}/${dnetVersion}/${core_uiextjs}-${dnetVersion}.war" dest="${tempFolder}/${core_uiextjs}-${dnetVersion}.war" />
+	</target>
+</project>
