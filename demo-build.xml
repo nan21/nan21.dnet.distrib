@@ -4,7 +4,7 @@
 	<property file="distrib.properties" />
 
 <!-- depends="prepare, createPlanFile, downloadCore, downloadAD, downloadBD, downloadBP, downloadMM, downloadHR, downloadSD, copy, pack, publish"-->
-	<target name="run" depends="prepare, createPlanFile, downloadCore, downloadAD, downloadBD, downloadBP, downloadMM, downloadHR, downloadSD, copy, pack, publish" >
+	<target name="run" depends="prepare, createPlanFile, downloadCore, downloadAD, downloadBD, downloadBP, downloadMM, downloadHR, downloadSD, copy, pack" >
 	</target>
 	
 	<target name="publish">			
@@ -44,9 +44,9 @@
 		
 		<echo>Copying configuration files...</echo>
 		<get src="https://raw.github.com/nan21/nan21.dnet.core/master/nan21.dnet.core.config/net.nan21.dnet.product.properties" 
-				dest="${targetFolder}/${virgoName}/config/net.nan21.dnet.product.properties"/>
+				dest="${targetFolder}/${virgoName}/repository/usr/net.nan21.dnet.product.properties"/>
 		<get src="https://raw.github.com/nan21/nan21.dnet.core/master/nan21.dnet.core.config/net.nan21.dnet.demo.properties" 
-						dest="${targetFolder}/${virgoName}/config/net.nan21.dnet.properties"/>
+						dest="${targetFolder}/${virgoName}/repository/usr/net.nan21.dnet.properties"/>
 	</target>
 	
 	<target name="createPlanFile">
@@ -59,10 +59,17 @@
 		        http://www.eclipse.org/virgo/schema/plan 
 		        http://www.eclipse.org/virgo/schema/plan/eclipse-virgo-plan.xsd"&gt;
 
+	&lt;artifact type="configuration" name="net.nan21.dnet" version="0"/&gt;	
+	&lt;artifact type="configuration" name="net.nan21.dnet.product" version="0"/&gt;
 	&lt;artifact type="bundle" name="nan21.dnet.core.api" version="[${dnetVersion}, ${dnetVersion}]"/&gt;
 	&lt;artifact type="bundle" name="nan21.dnet.core.db" version="[${dnetVersion}, ${dnetVersion}]"/&gt;
 	&lt;artifact type="bundle" name="nan21.dnet.core.domain" version="[${dnetVersion}, ${dnetVersion}]"/&gt;
+	&lt;artifact type="bundle" name="nan21.dnet.core.business" version="[${dnetVersion}, ${dnetVersion}]"/&gt;
 	&lt;artifact type="bundle" name="nan21.dnet.core.presenter" version="[${dnetVersion}, ${dnetVersion}]"/&gt;
+	&lt;artifact type="bundle" name="nan21.dnet.core.security" version="[${dnetVersion}, ${dnetVersion}]"/&gt;
+	&lt;artifact type="bundle" name="nan21.dnet.core.setup" version="[${dnetVersion}, ${dnetVersion}]"&gt;
+		&lt;property name="header:Web-ContextPath" value="/nan21.dnet.core.setup" /&gt;
+	&lt;/artifact&gt;					
 	&lt;artifact type="bundle" name="nan21.dnet.core.web" version="[${dnetVersion}, ${dnetVersion}]"&gt;
 		&lt;property name="header:Web-ContextPath" value="/nan21.dnet.core.web" /&gt;
 	&lt;/artifact&gt;
@@ -205,9 +212,14 @@ xsi:schemaLocation="
 		<echo>Downloading ${core_domain}-${dnetVersion}...</echo>
 		<get src="${mavenRepoUrl}/${dnetGroupIdAsPath}/${core_domain}/${dnetVersion}/${core_domain}-${dnetVersion}.jar" dest="${tempFolder}/${core_domain}-${dnetVersion}.jar" />
 
+		<echo>Downloading ${core_business}-${dnetVersion}...</echo>
+		<get src="${mavenRepoUrl}/${dnetGroupIdAsPath}/${core_business}/${dnetVersion}/${core_business}-${dnetVersion}.jar" dest="${tempFolder}/${core_business}-${dnetVersion}.jar" />
 
 		<echo>Downloading ${core_presenter}-${dnetVersion}...</echo>
 		<get src="${mavenRepoUrl}/${dnetGroupIdAsPath}/${core_presenter}/${dnetVersion}/${core_presenter}-${dnetVersion}.jar" dest="${tempFolder}/${core_presenter}-${dnetVersion}.jar" />
+		
+		<echo>Downloading ${core_setup}-${dnetVersion}...</echo>
+		<get src="${mavenRepoUrl}/${dnetGroupIdAsPath}/${core_setup}/${dnetVersion}/${core_setup}-${dnetVersion}.war" dest="${tempFolder}/${core_setup}-${dnetVersion}.jar" />
 
 		<echo>Downloading ${core_web}-${dnetVersion}...</echo>
 		<get src="${mavenRepoUrl}/${dnetGroupIdAsPath}/${core_web}/${dnetVersion}/${core_web}-${dnetVersion}.war" dest="${tempFolder}/${core_web}-${dnetVersion}.war" />
