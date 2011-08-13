@@ -17,7 +17,7 @@
 			       verbose="yes"
 			       >
 			    <fileset dir="${targetFolder}">                       
-			      <include name="dnet_ebs-${dnetVersion}.zip"/>		          
+			      <include name="dnet_ebs-${dnetVersion}${tag}.zip"/>		          
 			    </fileset>
 			  </ftp>  
 		</target>
@@ -25,7 +25,7 @@
 	
 	<target name="pack">
 		<echo>Building the zip file...</echo>
-		<zip destfile="${targetFolder}/dnet_ebs-${dnetVersion}.zip"
+		<zip destfile="${targetFolder}/dnet_ebs-${dnetVersion}${tag}.zip"
 			       basedir="${targetFolder}"
 			  />
 	</target>
@@ -63,7 +63,10 @@
 		<copy file="${targetFolder}/${virgoName}/repository/usr/net.nan21.dnet.product.properties" 
 			tofile="${targetFolder}/build/artifacts/config/net.nan21.dnet.product.properties" />
 		<copy file="${targetFolder}/${virgoName}/repository/usr/net.nan21.dnet.properties" 
-					tofile="${targetFolder}/build/artifacts/config/net.nan21.dnet.properties" />	
+					tofile="${targetFolder}/build/artifacts/config/net.nan21.dnet.properties" />			
+		<echo>Copying license files...</echo>
+				<get src="http://www.apache.org/licenses/LICENSE-2.0.txt" 
+						dest="${targetFolder}/license.txt"/>		
 	</target>
 	
 	<target name="createPlanFile">
@@ -82,6 +85,7 @@
 	&lt;artifact type="bundle" name="nan21.dnet.core.db" version="[${dnetVersion}, ${dnetVersion}]"/&gt;
 	&lt;artifact type="bundle" name="nan21.dnet.core.domain" version="[${dnetVersion}, ${dnetVersion}]"/&gt;
 	&lt;artifact type="bundle" name="nan21.dnet.core.business" version="[${dnetVersion}, ${dnetVersion}]"/&gt;
+	&lt;artifact type="bundle" name="nan21.dnet.core.workflow" version="[${dnetVersion}, ${dnetVersion}]"/&gt;
 	&lt;artifact type="bundle" name="nan21.dnet.core.presenter" version="[${dnetVersion}, ${dnetVersion}]"/&gt;
 	&lt;artifact type="bundle" name="nan21.dnet.core.security" version="[${dnetVersion}, ${dnetVersion}]"/&gt;
 	&lt;artifact type="bundle" name="nan21.dnet.core.setup" version="[${dnetVersion}, ${dnetVersion}]"&gt;
@@ -247,7 +251,10 @@ xsi:schemaLocation="
 
 		<echo>Downloading ${core_business}-${dnetVersion}...</echo>
 		<get src="${mavenRepoUrl}/${dnetGroupIdAsPath}/${core_business}/${dnetVersion}/${core_business}-${dnetVersion}.jar" dest="${tempFolder}/core/${core_business}-${dnetVersion}.jar" />
-
+		
+		<echo>Downloading ${core_workflow}-${dnetVersion}...</echo>
+		<get src="${mavenRepoUrl}/${dnetGroupIdAsPath}/${core_workflow}/${dnetVersion}/${core_workflow}-${dnetVersion}.jar" dest="${tempFolder}/core/${core_workflow}-${dnetVersion}.jar" />
+		
 		<echo>Downloading ${core_presenter}-${dnetVersion}...</echo>
 		<get src="${mavenRepoUrl}/${dnetGroupIdAsPath}/${core_presenter}/${dnetVersion}/${core_presenter}-${dnetVersion}.jar" dest="${tempFolder}/core/${core_presenter}-${dnetVersion}.jar" />
 		
