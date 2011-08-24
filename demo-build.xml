@@ -32,6 +32,8 @@
 	
 	
 	<target name="prepare">
+		<mkdir dir="${tempFolder}"/>
+		<mkdir dir="${targetFolder}"/>
 		<echo>Cleaning workspace...</echo>
 		<echo>Cleaning target folder...</echo>
 		<delete includeEmptyDirs="true">
@@ -67,6 +69,12 @@
 		<echo>Copying license files...</echo>
 				<get src="http://www.apache.org/licenses/LICENSE-2.0.txt" 
 						dest="${targetFolder}/license.txt"/>		
+	
+		<echo>Copying documentation folder...</echo>
+		<copy todir="${targetFolder}/docs">
+			<fileset dir="${docsFolder}" />
+		</copy>
+	
 	</target>
 	
 	<target name="createPlanFile">
