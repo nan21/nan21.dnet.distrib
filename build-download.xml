@@ -1,0 +1,154 @@
+<project name="DemoDistributionBuilder" default="download" basedir="." xmlns:ac="antlib:net.sf.antcontrib">
+	<description>Build database artifacts.</description>
+	<property file="distrib.properties" />
+
+
+	<target name="download" depends="downloadCore,downloadModules,downloadOthers">
+	</target>
+
+
+	<!-- ========================================================================================== -->
+	<!-- =============================== DOWNLOAD - OTHERS ======================================= -->
+	<!-- ========================================================================================== -->
+
+	<target name="downloadOthers">
+		<echo>Downloading others...</echo>
+
+		<echo>Downloading nan21.dnet.jpa...</echo>
+		<get-artifact groupId="net.nan21.dnet" artifactId="nan21.dnet.jpa" version="1.0.2" extension="jar" snapshot="true" downloadpath="modules" copyAs="" />
+
+		<echo>Downloading nan21.dnet.module.md.www...</echo>
+		<get-artifact groupId="net.nan21.dnet" artifactId="nan21.dnet.module.md.www" version="1.0.2" extension="jar" snapshot="true" downloadpath="modules" copyAs="" />
+
+	</target>
+
+
+	<!-- ========================================================================================== -->
+	<!-- =============================== DOWNLOAD - CORE ========================================== -->
+	<!-- ========================================================================================== -->
+
+	<target name="downloadCore">
+		<echo>Downloading core bundles...</echo>
+		<ac:for list="${coreBundles}" param="bundle">
+			<sequential>
+				<ac:var name="extension" value="jar" />
+				<ac:var name="copyAs" value="" />
+				<ac:if>
+					<or>
+						<equals arg1="@{bundle}" arg2="web" />
+						<equals arg1="@{bundle}" arg2="welcome" />
+						<equals arg1="@{bundle}" arg2="setup" />
+						<equals arg1="@{bundle}" arg2="ui.extjs" />
+					</or>
+					<then>
+						<ac:var name="extension" value="war" />
+					</then>
+				</ac:if>
+				<ac:if>
+					<equals arg1="@{bundle}" arg2="db" />
+					<then>
+						<ac:var name="copyAs" value="db/core.${extension}" />
+					</then>
+				</ac:if>
+				<get-artifact groupId="net.nan21.dnet" artifactId="nan21.dnet.core.@{bundle}" version="${dnetVersion}" extension="${extension}" snapshot="${snapshot}" downloadpath="core" copyAs="${copyAs}" />
+			</sequential>
+		</ac:for>
+
+		<echo>Downloading core fragments...</echo>
+		<ac:for list="${coreFragments}" param="bundle">
+			<sequential>
+				<get-artifact groupId="net.nan21.dnet" artifactId="nan21.dnet.fragment.@{bundle}" version="${dnetVersion}" extension="jar" snapshot="${snapshot}" downloadpath="core" copyAs="" />
+			</sequential>
+		</ac:for>
+	</target>
+
+
+	<!-- ========================================================================================== -->
+	<!-- =============================== DOWNLOAD - MODULES ======================================= -->
+	<!-- ========================================================================================== -->
+
+
+	<target name="downloadModules">
+		<echo>Downloading modules...</echo>
+		<ac:for list="${modules}" param="module">			
+			<sequential>
+				<echo>Downloading module @{module}...</echo>
+				<ac:for list="${moduleBundles}" param="bundle">
+					<sequential>
+						<ac:var name="extension" value="jar" />
+						<ac:if>
+							<equals arg1="@{bundle}" arg2="ui.extjs" />
+							<then>
+								<ac:var name="extension" value="war" />
+							</then>
+						</ac:if>
+						<ac:if>
+							<equals arg1="@{bundle}" arg2="db" />
+							<then>
+								<ac:var name="copyAs" value="db/@{module}.${extension}" />
+							</then>
+						</ac:if>
+						<get-artifact groupId="net.nan21.dnet" artifactId="nan21.dnet.module.@{module}.@{bundle}" version="${dnetVersion}" extension="${extension}" snapshot="${snapshot}" downloadpath="modules" copyAs="${copyAs}" />
+					</sequential>
+				</ac:for>
+			</sequential>
+		</ac:for>
+	</target>
+
+
+	<!-- ========================================================================================== -->
+	<!-- ================================= DOWNLOAD - Macro ======================================= -->
+	<!-- ========================================================================================== -->
+
+	<macrodef name="get-artifact">
+		<attribute name="groupId" />
+		<attribute name="artifactId" />
+		<attribute name="version" />
+		<attribute name="extension" />
+		<attribute name="snapshot" />
+		<attribute name="downloadPath" />
+		<attribute name="copyAs" />
+
+		<sequential>
+			<ac:var name="buildId" value="" />
+			<ac:var name="snapshotTag" value="" />
+			<ac:var name="mavenRepoUrl" value="${mavenReleaseRepoUrl}" />
+			<ac:if>
+				<equals arg1="@{snapshot}" arg2="true" />
+				<then>
+					<ac:var name="snapshotTag" value="-SNAPSHOT" />
+					<ac:var name="mavenRepoUrl" value="${mavenSnapshotRepoUrl}" />
+
+					<echo>Resolving latest snapshot of @{groupId}/@{artifactId}-@{version}...</echo>
+					<get src="${mavenRepoUrl}/${dnetGroupIdAsPath}/@{artifactId}/@{version}${snapshotTag}/maven-metadata.xml" dest="${tempFolder}/maven-metadata/@{groupId}-@{artifactId}.xml" />
+
+					<taskdef name="xmltask" classname="com.oopsconsultancy.xmltask.ant.XmlTask" />
+					<xmltask source="${tempFolder}/maven-metadata/@{groupId}-@{artifactId}.xml">
+
+						<call path="/metadata/versioning/snapshot">
+							<param name="timestamp" path="/metadata/versioning/snapshot/timestamp/text()" />
+							<param name="buildNumber" path="/metadata/versioning/snapshot/buildNumber/text()" />
+							<actions>
+								<ac:var name="buildId" value="-@{timestamp}-@{buildNumber}" />
+							</actions>
+						</call>
+					</xmltask>
+				</then>
+			</ac:if>
+			<echo>Downloading  @{groupId}/@{artifactId}-@{version}${buildId}...</echo>
+			<get src="${mavenRepoUrl}/${dnetGroupIdAsPath}/@{artifactId}/${dnetVersion}${snapshotTag}/@{artifactId}-${dnetVersion}${buildId}.@{extension}" dest="${tempFolder}/@{downloadPath}/@{artifactId}-${dnetVersion}${buildId}.@{extension}" />
+
+			<ac:if>
+				<equals arg1="@{copyAs}" arg2="" />
+				<then>
+				</then>
+				<else>
+					<copy file="${tempFolder}/@{downloadPath}/@{artifactId}-${dnetVersion}${buildId}.@{extension}" tofile="${tempFolder}/@{copyAs}" />
+				</else>
+			</ac:if>
+
+		</sequential>
+	</macrodef>
+
+
+</project>

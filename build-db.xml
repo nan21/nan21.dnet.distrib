@@ -1,0 +1,137 @@
+<project name="DemoDistributionBuilder" default="db" basedir="." xmlns:ac="antlib:net.sf.antcontrib">
+	<description>Build database artifacts.</description>
+	<property file="distrib.properties" />
+
+
+	<target name="db">
+		
+		<echo>Building the database artifacts...</echo>
+		<delete includeEmptyDirs="true">
+			<fileset dir="${targetFolder}/build/artifacts/db" includes="/**/*" />
+		</delete>
+
+		<mkdir dir="${targetFolder}/build/artifacts/db/oracle" />
+		<mkdir dir="${targetFolder}/build/artifacts/db/mysql" />
+		
+		<get src="https://raw.github.com/nan21/nan21.dnet.core/master/nan21.dnet.core.config/liquibase.mysql.properties" dest="${targetFolder}/build/artifacts/db/mysql/liquibase.properties" />
+		<get src="https://raw.github.com/nan21/nan21.dnet.core/master/nan21.dnet.core.config/liquibase.oracle.properties" dest="${targetFolder}/build/artifacts/db/oracle/liquibase.properties" />
+ 
+
+		<copy file="${libFolder}/jdbc/mysql-connector-java-5.1.6.jar" tofile="${targetFolder}/build/artifacts/db/_lib/jdbc-mysql.jar" />
+		<copy file="${libFolder}/liquibase/liquibase.jar" tofile="${targetFolder}/build/artifacts/db/_lib/liquibase/liquibase.jar" />
+		<copy file="${libFolder}/liquibase/liquibase" tofile="${targetFolder}/build/artifacts/db/_lib/liquibase/liquibase" />
+		<copy file="${libFolder}/liquibase/liquibase.bat" tofile="${targetFolder}/build/artifacts/db/_lib/liquibase/liquibase.bat" />
+		<copy file="${libFolder}/liquibase/liquibase.spec" tofile="${targetFolder}/build/artifacts/db/_lib/liquibase/liquibase.spec" />
+		<copy file="${libFolder}/liquibase/LICENSE.txt" tofile="${targetFolder}/build/artifacts/db/_lib/liquibase/LICENSE.txt" />
+	
+	
+		<!-- create temporary install.bat file -->
+		<echo file="${tempFolder}/install_mysql.bat">
+@echo off
+call ../../../_lib/liquibase/liquibase --defaultsFile=../../liquibase.properties --classpath=../../../_lib/jdbc-mysql.jar --changeLogFile=install.xml update
+pause...
+		</echo>	
+		<echo file="${tempFolder}/install_oracle.bat">
+@echo off
+call ../../../_lib/liquibase/liquibase --defaultsFile=../../liquibase.properties --classpath=../../../_lib/jdbc-oracle.jar --changeLogFile=install.xml update
+pause...
+		</echo>			
+		<echo file="${tempFolder}/install_all.xml">&lt;?xml version="1.0" encoding="UTF-8" standalone="no"?>&lt;databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-2.0.xsd"&gt;
+&lt;includeAll path="core/table" /&gt;
+&lt;includeAll path="ad/table" /&gt;
+&lt;includeAll path="ad/fk" /&gt;
+&lt;includeAll path="bd/table" /&gt;
+&lt;includeAll path="bd/fk" /&gt;	
+&lt;includeAll path="md/table" /&gt;
+&lt;includeAll path="md/fk" /&gt;	
+&lt;includeAll path="fi/table" /&gt;
+&lt;includeAll path="fi/fk" /&gt;	
+&lt;includeAll path="hr/table" /&gt;
+&lt;includeAll path="hr/fk" /&gt;				
+&lt;includeAll path="pj/table" /&gt;
+&lt;includeAll path="pj/fk" /&gt;				
+&lt;includeAll path="sc/table" /&gt;
+&lt;includeAll path="sc/fk" /&gt;				
+&lt;includeAll path="sd/table" /&gt;
+&lt;includeAll path="sd/fk" /&gt;				
+&lt;changeSet author="Version" id="${dnetVersion}" /&gt;
+&lt;/databaseChangeLog&gt;
+		</echo>			 
+		<copy file="${tempFolder}/install_all.xml" todir="${targetFolder}/build/artifacts/db/mysql/install" />
+		<copy file="${tempFolder}/install_all.xml" todir="${targetFolder}/build/artifacts/db/oracle/install" />
+		<echo file="${targetFolder}/build/artifacts/db/mysql/install/install_all.bat">
+@echo off
+call ../../_lib/liquibase/liquibase --defaultsFile=../liquibase.properties --classpath=../../_lib/jdbc-mysql.jar --changeLogFile=install_all.xml update
+pause...
+		</echo>	
+		<echo file="${targetFolder}/build/artifacts/db/oracle/install/install_all.bat">
+@echo off
+call ../../_lib/liquibase/liquibase --defaultsFile=../liquibase.properties --classpath=../../_lib/jdbc-oracle.jar --changeLogFile=install_all.xml update
+pause...
+		</echo>	
+	
+		<!-- CORE: create temporary install.xml file -->
+		<echo file="${tempFolder}/install.xml">&lt;?xml version="1.0" encoding="UTF-8" standalone="no"?>&lt;databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-2.0.xsd"&gt;
+&lt;includeAll path="table" /&gt;
+&lt;changeSet author="Version" id="${dnetVersion}" /&gt;
+&lt;/databaseChangeLog&gt;
+		</echo>	
+				
+		<!-- core -->
+		<unzip src="${tempFolder}/db/core.jar" dest="${targetFolder}/build/artifacts/db">
+			<patternset>
+				<include name="oracle/**" />
+				<include name="mysql/**" />
+			</patternset>
+		</unzip>
+		<copy file="${tempFolder}/install_oracle.bat" tofile="${targetFolder}/build/artifacts/db/oracle/install/core/install.bat" />			
+		<copy file="${tempFolder}/install.xml" todir="${targetFolder}/build/artifacts/db/oracle/install/core" />
+		<copy file="${tempFolder}/install_mysql.bat" tofile="${targetFolder}/build/artifacts/db/mysql/install/core/install.bat" />	
+		<copy file="${tempFolder}/install.xml" todir="${targetFolder}/build/artifacts/db/mysql/install/core" />
+		
+		
+		<!-- MODULES: create temporary install.xml file -->
+		<echo file="${tempFolder}/install.xml">&lt;?xml version="1.0" encoding="UTF-8" standalone="no"?>
+&lt;databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-2.0.xsd"&gt;
+&lt;includeAll path="table" /&gt;
+&lt;includeAll path="fk" /&gt;
+&lt;changeSet author="Version" id="${dnetVersion}" /&gt;
+&lt;/databaseChangeLog&gt;
+		</echo>
+		
+
+		<ac:for list="${modules}" param="module">
+		<sequential>
+			<echo> Unpacking @{module}-db </echo>
+				<unzip src="${tempFolder}/db/@{module}.jar" dest="${targetFolder}/build/artifacts/db">
+					<patternset>
+						<include name="oracle/**" />
+						<include name="mysql/**" />
+						<exclude name="META-INF/**" />
+					</patternset>
+				</unzip>
+				<copy file="${tempFolder}/install_oracle.bat" tofile="${targetFolder}/build/artifacts/db/oracle/install/@{module}/install.bat" />
+				<copy file="${tempFolder}/install.xml" todir="${targetFolder}/build/artifacts/db/oracle/install/@{module}" />
+				<copy file="${tempFolder}/install_mysql.bat" tofile="${targetFolder}/build/artifacts/db/mysql/install/@{module}/install.bat" />
+				<copy file="${tempFolder}/install.xml" todir="${targetFolder}/build/artifacts/db/mysql/install/@{module}" />		
+		</sequential>
+		</ac:for>
+		 
+		<!-- remove temporary install.xml and install.bat files -->
+		<delete file="${tempFolder}/install_all.xml" />
+		<delete file="${tempFolder}/install_all.bat" />
+		<delete file="${tempFolder}/install.xml" />
+		<delete file="${tempFolder}/install_oracle.bat" />
+		<delete file="${tempFolder}/install_mysql.bat" />
+	</target>
+
+
+
+	
+</project>
