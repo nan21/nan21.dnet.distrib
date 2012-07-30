@@ -95,6 +95,9 @@
 
 		 
 		<echo file="${file}" append="true">	
+		&lt;artifact type="bundle" name="nan21.dnet.module.md.www" &gt;
+			&lt;property name="header:Web-ContextPath" value="/nan21.dnet.module.md.www" /&gt;			
+		&lt;/artifact&gt;	
 		&lt;artifact type="bundle" name="nan21.dnet.jpa" /&gt;
 &lt;/plan&gt;
 		</echo>
